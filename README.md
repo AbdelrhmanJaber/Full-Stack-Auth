@@ -4,7 +4,8 @@ This repository contains the implementation of the EasyGenerator technical asses
 
 Below is a brief video demonstration of the completed application, showcasing user registration validation, JWT authentication, password strength analysis, and dashboard route protection.
 
-[Assesment Vedio.webm](https://github.com/user-attachments/assets/9e027f83-58f7-45fa-91dc-3471e2e0b38f)
+[Assesment Video.webm](https://github.com/user-attachments/assets/b384ca86-2c2f-42fd-9353-a29cd952aedb)
+
 
 
 ## Architecture Overview
