@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+nest-scaffold/
+
+# Build output
+dist/
+coverage/
+logs/
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
