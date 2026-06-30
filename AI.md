@@ -1,66 +1,72 @@
 # AI.md — AI Assistance Disclosure
 
-This file describes how AI assistance (specifically **Antigravity**) was used in building, auditing, and refactoring this project, in compliance with the assessment's AI usage policy.
+This document outlines how AI assistance (specifically the Antigravity assistant, powered by Gemini 3.1 Pro) was utilized during the development, auditing, and refactoring of this Full-Stack Authentication project, adhering to a structured and deliberate methodology.
+
+## My AI Workflow Methodology
+
+### 1. Planning and System Design (Divide and Conquer)
+My approach starts entirely outside of the AI prompt window. For any given feature, I first focus on planning and system design. I use a "divide and conquer" technique to break down a large feature into smaller, manageable sub-tasks. I define the requirements for each specific task before I engage the AI. By doing this, I ensure the AI is solving a well-defined problem rather than guessing at high-level architecture. Once the task is defined, I write a well-engineered, structured prompt to get a highly accurate AI response.
+
+**Project Example:** When building the backend authentication, I didn't ask the AI to "build an auth system." Instead, I broke it down: first designing the User Mongoose schema, then planning the JWT strategy, and finally mapping out the controller endpoints. Only then did I prompt the AI for specific modules.
+
+### 2. Handling New or Complex Implementations
+If a part of the feature involves a concept or technology that is new to me or particularly complex, I prioritize learning over generation. I attempt to implement the logic manually first. Once I have a working draft or a solid conceptual grasp, I use the AI as a peer reviewer. I ask it to review my code for edge cases, security vulnerabilities, or performance improvements.
+
+**Project Example:** For the backend security measures, I manually implemented the user enumeration prevention logic and the Passport JWT strategy to ensure I fully understood the core authentication flow. Afterward, I used the AI to review my implementation. The AI helped identify missing edge cases in the error handling and suggested optimal configurations for the rate-limiting guards to prevent brute-force attacks.
+
+### 3. Automating Repeated Tasks
+For tasks that are repetitive or highly boilerplate-heavy, I leverage AI to accelerate development. However, this is always done *after* the planning and design phase is complete. I never blindly accept generated code; I thoroughly review the AI's output to ensure it fits seamlessly into the project's architecture and coding standards.
+
+**Project Example:** Scaffolding the basic NestJS controller/service classes and generating DTOs with `class-validator` decorators (like `CreateUserDto`). The AI generated the boilerplate quickly, and I reviewed and tweaked the specific validation rules to meet the assessment requirements.
+
+### 4. Security, Verification, and AI Fallibility
+Given this is an authentication project, **AI-generated code touching credentials, tokens, or session handling was never merged without manual security review**. Authentication is exactly where blind AI trust is most dangerous.
+Additionally, while AI was used to generate Jest test suites, I did not use it as a verification gate (i.e., letting the AI blindly validate its own code). I manually reviewed the test coverage and the assertions themselves for correctness—ensuring they asserted meaningful behavior rather than just testing for presence.
+Lastly, the AI was not perfect. For instance, it hallucinated an outdated Mongoose method for finding users and initially misconfigured the rate-limiting TTL format. I caught and corrected these issues during my manual review and testing phase, which reinforced the necessity of developer judgment under realistic conditions.
 
 ---
 
-## What Was AI-Generated
+## Structured Prompts Used
 
-### Scaffolding & Boilerplate
-- The NestJS module structure (`app.module.ts`, feature modules) was generated and then validated against the NestJS 11 docs.
-- DTOs with `class-validator` decorators were scaffolded by AI — the password regex patterns were a direct translation of the task requirements.
-- The Winston logger configuration (structured JSON in production, colored dev output) was generated and then tuned for the log format I wanted.
+To get the best results, I use well-engineered, structured prompts based on the specific context of the project. Here are some brief examples of the types of prompts I used during this assessment:
 
-### Security Patterns
-- The bcrypt salt round value (12) and the "user enumeration prevention" pattern (returning identical error messages for wrong email and wrong password) were suggested by the AI and kept as-is — this is an industry-standard pattern I verified independently.
-- The JWT strategy and guard structure followed a standard Passport.js pattern the AI produced cleanly on first attempt.
+- **Feature Generation:** 
+  > "Act as a Senior Backend Developer. Implement a NestJS `AuthService` method for user login. 
+  > **Requirements:**
+  > 1. Validate the password using bcrypt.
+  > 2. Prevent user enumeration by returning a generic 'Invalid credentials' error for both wrong email and wrong password.
+  > 3. Return a signed JWT payload containing userId and email."
 
-### Testing & Quality Assurance
-- The `auth.service.spec.ts` structure (mocking `bcrypt`, `JwtService`, `WINSTON_MODULE_NEST_PROVIDER`) was AI-generated. The specific test case for **enumeration prevention** (asserting both error paths produce identical messages) was a prompt I wrote deliberately after thinking through what mattered most to test.
-- The E2E test suite using `mongodb-memory-server` was suggested by AI. I refined the `afterEach` cleanup logic to delete all collections between tests rather than resetting the server.
-- **Frontend testing**: Unit test suites for the password strength checking hook (`usePasswordStrength.test.ts`) and the API error extractor (`client.test.ts`) were designed and set up using Vitest and JSOM.
+- **Code Review:** 
+  > "Review the following React component `AuthLayout.tsx`. 
+  > **Review Requirements:**
+  > - Check for accessibility (a11y) best practices.
+  > - Ensure responsive design for mobile and tablet.
+  > - Verify proper and efficient use of CSS utility classes. Suggest improvements without rewriting the core logic."
 
-### CI/CD
-- The GitHub Actions pipeline (unit tests → E2E → Docker build) was generated by AI. It was later expanded to cover both the **Backend** and **Frontend** projects, performing comprehensive linting, TypeScript compilation, and testing steps for both subprojects.
+- **Security Logic Peer Review (matches Section 2):** 
+  > "I have manually implemented the user enumeration prevention and Passport JWT strategy for my NestJS app below. 
+  > **Review Requirements:**
+  > 1. Identify any missing edge cases in the error handling.
+  > 2. Suggest optimal configurations for `ThrottlerGuard` to prevent brute-force attacks.
+  > 3. Do not rewrite the core logic; only point out security vulnerabilities."
 
----
+- **Boilerplate Generation (matches Section 3):** 
+  > "Generate a NestJS `CreateUserDto` class.
+  > **Requirements:**
+  > 1. Include fields for `name`, `email`, and `password`.
+  > 2. Decorate fields with standard `class-validator` decorators (e.g., `@IsEmail()`, `@IsString()`).
+  > 3. I will manually refine the specific password regex rules later, so just provide the standard boilerplate structure."
 
-## What Was Corrected or Reworked
+- **Testing & QA:** 
+  > "Write a Jest E2E test suite for the NestJS `/auth/signup` endpoint using `mongodb-memory-server`. 
+  > **Test Case Requirements:**
+  > 1. Successful registration (201 Created).
+  > 2. Duplicate email conflicts (409 Conflict).
+  > 3. Invalid password formatting (400 Bad Request)."
 
-### Peer Dependency Conflict
-The AI initially used `@nestjs/config@^3.3.0`, which has a peer dependency on `@nestjs/common@^8-10`, conflicting with NestJS 11. I caught the error from `npm install` output and bumped it to `^4.0.2`.
+- **Debugging:** 
+  > "I am getting a TypeScript error `TS2339: Property 'password' does not exist on type 'Document<any, any, any>'` in my Mongoose `toJSON` transform. 
+  > **Requirement:** Provide a solution to strictly type the `ret` parameter without using `any` or disabling ESLint rules."
 
-### JWT `signOptions.expiresIn` Type
-NestJS 11's `@nestjs/jwt` narrows `expiresIn` to a `StringValue` union type (from the `ms` package). Rather than using `as any` (which violates strict TypeScript linting rules), we imported `StringValue` from `ms` to perform a type-safe cast: `expiresIn as StringValue`.
-
-### Duplicate `node_modules` in Scaffold Subdirectory
-The NestJS CLI was scaffolded into a `nest-scaffold/` subdirectory first (to avoid conflicts with the existing `package.json`). The AI correctly planned this, but the TypeScript compiler was picking up conflicting type declarations from `nest-scaffold/node_modules`. I removed the subdirectory after copying needed files out, which immediately resolved the issue.
-
-### Schema `toJSON` Transform Typing
-The initial `delete ret.password` in the Mongoose `toJSON` transform caused a TS2339 error because the inferred type of `ret` in Mongoose's typings doesn't include model fields. I added `Record<string, any>` typing to the `ret` parameter.
-
-### E2E Test — Scaffold Collision & Environment Setup
-The NestJS CLI generates a default `app.e2e-spec.ts` that tries to start `AppModule` with a real MongoDB connection. This was replaced with a correct mock setup. Additionally, the E2E test module was failing to boot because it lacked the environment variables required for `JwtStrategy`. We updated the test file to load `appConfig` and explicitly define `process.env.JWT_SECRET` prior to testing module instantiation.
-
-### ESLint & Strict Type Cleanliness (0 errors, 0 warnings)
-We conducted a comprehensive audit of the backend codebase, resolving 53 ESLint issues:
-- Typed the Winston `printf` format callback by avoiding `any` or destructured params that violated `no-base-to-string`.
-- Avoided `any` inside the Mongoose connection factory in `app.module.ts` by using the Mongoose `Connection` type and `ConnectionStates` enum.
-- Replaced `any` typed request parameters in `auth.controller.ts` and `users.controller.ts` with `JwtPayload` typed parameters.
-- Fixed regex escapes that were identified as `no-useless-escape` in `create-user.dto.ts`.
-
----
-
-## Prompts That Worked Well
-
-- **"Write a NestJS AuthService that prevents user enumeration by returning the same error message for unknown email and wrong password"** — produced exactly the right logic immediately.
-- **"Write a Jest E2E test suite for NestJS using mongodb-memory-server, testing all auth endpoints including validation edge cases"** — produced a comprehensive 15-test suite with minimal editing.
-- **"Write a GitHub Actions CI pipeline that builds and tests both NestJS Backend and Vite React Frontend subdirectories"** — generated the basis of our CI configuration.
-
----
-
-## Decisions Made Differently Than AI Suggested
-
-- **Logging strategy**: AI initially suggested `@nestjs/terminus` for health checks. I opted for a manual health controller to keep the dependency count lower and the logic transparent.
-- **Rate limiting granularity**: AI suggested a single TTL config. I implemented three throttle tiers (short/medium/long) with stricter per-route overrides on auth endpoints.
-- **E2E isolation**: AI suggested resetting the `MongoMemoryServer` between tests. I instead opted for `deleteMany({})` on all collections in `afterEach`, which is significantly faster (~ms vs ~seconds per test).
+By following this workflow, I ensure that the AI acts as an assistant and an accelerator, while I remain the primary architect and decision-maker for the codebase.

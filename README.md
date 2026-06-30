@@ -1,41 +1,40 @@
-# EasyGenerator Technical Assessment — Full Stack Authentication API
+# EasyGenerator Technical Assessment — Full Stack Authentication Application
 
-A production-ready **NestJS + MongoDB** authentication backend with full JWT auth, structured logging, rate limiting, Swagger API docs, unit + E2E tests, and a GitHub Actions CI/CD pipeline.
+This repository contains the implementation of the EasyGenerator technical assessment: a production-ready **React (Vite + TypeScript) + NestJS (MongoDB)** full-stack authentication application.
+
+Below is a brief video demonstration of the completed application, showcasing user registration validation, JWT authentication, password strength analysis, and dashboard route protection.
+
+<p align="center">
+  <video src="Assets/Assesment%20Vedio.webm" width="100%" controls></video>
+</p>
 
 ---
 
 ## Architecture Overview
 
 ```
-Backend/
-├── src/
-│   ├── auth/                  # Authentication module
-│   │   ├── dto/               # Request/response DTOs
-│   │   ├── guards/            # JWT auth guard
-│   │   ├── strategies/        # Passport JWT strategy
-│   │   ├── auth.controller.ts
-│   │   ├── auth.module.ts
-│   │   ├── auth.service.ts
-│   │   └── auth.service.spec.ts
-│   ├── users/                 # Users module
-│   │   ├── dto/               # User DTOs
-│   │   ├── schemas/           # Mongoose User schema
-│   │   ├── users.controller.ts
-│   │   ├── users.module.ts
-│   │   ├── users.service.ts
-│   │   └── users.service.spec.ts
-│   ├── health/                # Health check endpoint
-│   ├── common/
-│   │   ├── filters/           # Global HTTP exception filter
-│   │   └── interceptors/      # Logging + transform interceptors
-│   ├── config/                # Typed app configuration
-│   ├── app.module.ts
-│   └── main.ts
-├── test/
-│   ├── auth.e2e-spec.ts       # Full E2E test suite (mongodb-memory-server)
-│   └── jest-e2e.json
-├── Dockerfile                 # Multi-stage production Docker build
-└── .env.example
+Full-Stack-Auth/
+├── Backend/                   # NestJS Backend Application
+│   ├── src/
+│   │   ├── auth/              # Auth module (sign-in, sign-up, JWT strategy)
+│   │   ├── users/             # Users module (schema, service, controller)
+│   │   ├── common/            # Filters, interceptors, logger setup
+│   │   └── config/            # App configurations
+│   ├── test/                  # E2E test suites
+│   ├── Dockerfile             # Production build containerization
+│   └── .env.example
+│
+├── Frontend/                  # React + Vite Frontend Application
+│   ├── src/
+│   │   ├── api/               # Axios client and API wrappers
+│   │   ├── components/        # Reusable UI components & layouts
+│   │   ├── context/           # AuthContext (state management, JWT session)
+│   │   ├── hooks/             # Custom React hooks (password validator)
+│   │   ├── pages/             # Pages (SignIn, SignUp, Dashboard)
+│   │   └── styles/            # Custom CSS system and themes
+│   └── vitest.config.ts       # Frontend test configuration
+│
+└── docker-compose.yml         # Dev/Prod multi-container orchestration
 ```
 
 ---
@@ -65,7 +64,7 @@ Spins up the NestJS backend and MongoDB together in an isolated Docker network.
 ```bash
 # 1. Clone and enter the project root
 git clone <repo-url>
-cd "EasyGenerator assesment"
+cd Full-Stack-Auth
 
 # 2. Set up environment variables
 cp .env.example .env
@@ -83,13 +82,13 @@ docker compose logs -f backend
 
 ---
 
-### Option 2: Local Development (without Docker)
+### Option 2: Local Backend Development (without Docker)
 
 **Prerequisites:** Node.js ≥ 20 and a running MongoDB instance.
 
 ```bash
 # 1. Go to the backend directory
-cd "EasyGenerator assesment/Backend"
+cd Backend
 
 # 2. Set up environment
 cp .env.example .env
@@ -101,6 +100,26 @@ npm install
 # 4. Start in watch mode
 npm run start:dev
 ```
+
+---
+
+### Option 3: Local Frontend Development
+
+**Prerequisites:** Node.js ≥ 20. The frontend requires a running backend (Option 1 or Option 2).
+
+```bash
+# 1. Go to the frontend directory
+cd Frontend
+
+# 2. Install dependencies
+npm install
+
+# 3. Start development server with hot-reload
+npm run dev
+```
+
+- **Frontend App:** http://localhost:5173
+- *API Proxying:* Requests matching `/api` are automatically proxied to the NestJS backend at `http://localhost:3000`.
 
 ---
 
@@ -131,6 +150,8 @@ npm run start:dev
 
 ## Testing
 
+### Backend Testing
+Navigate to `Backend/` directory:
 ```bash
 # Unit tests (no external dependencies)
 npm run test
@@ -142,20 +163,35 @@ npm run test:cov
 npm run test:e2e
 ```
 
-**Test Coverage:**
+**Backend Test Coverage:**
 - `AuthService` — sign-up, sign-in, enumeration prevention, profile retrieval
 - `UsersService` — create, find by email, find by id, exists check
 - `E2E Auth Flow` — sign-up validation, duplicate detection, sign-in, protected endpoint access
 
+### Frontend Testing
+Navigate to `Frontend/` directory:
+```bash
+# Unit/Component tests (Vitest + JSDOM)
+npm run test
+
+# Code quality check (Oxlint)
+npm run lint
+```
+
+**Frontend Test Coverage:**
+- `usePasswordStrength` hook — asserts password validation metrics (weak, medium, strong, uppercase/lowercase/numbers checks)
+- `client` API module — validates response extraction and standardized error parsing
+
 ---
 
-## 🔍 Tester & Examiner Verification Guide
+## 🔍 Tester Verification Guide
 
-If you are evaluating this project, follow this step-by-step guide to run automated tests and perform manual API tests.
+If you are evaluating this project, follow this step-by-step guide to run automated tests and perform manual verification.
 
-### 1. Running Automated Tests (Unit & Integration)
-Navigate to the `Backend` directory and execute the following:
+### 1. Running Automated Tests (Backend & Frontend)
 
+#### A. Backend Tests
+Navigate to the `Backend` directory:
 ```bash
 cd Backend
 
@@ -169,17 +205,56 @@ npm run test:e2e
 npm run test:cov
 ```
 
+#### B. Frontend Tests
+Navigate to the `Frontend` directory:
+```bash
+cd Frontend
+
+# Run unit and component tests (Vitest + JSDOM)
+npm run test
+
+# Run Oxlint code quality verification
+npm run lint
+```
+
 ---
 
-### 2. Manual Testing via Swagger UI (Visual & Interactive)
-The project includes a built-in Swagger interface for fast visual verification.
+### 2. Manual Testing via Frontend UI (End-to-End Application)
 
-1. **Spin up the application:**
+The easiest way to test the complete, integrated application is through the React UI.
+
+1. **Start Backend & Database (via Docker Compose):**
    ```bash
    docker compose up --build -d
    ```
+2. **Start Frontend Dev Server:**
+   ```bash
+   cd Frontend
+   npm install
+   npm run dev
+   ```
+3. **Open Application in Browser:** Navigate to [http://localhost:5173](http://localhost:5173).
+4. **Step-by-Step E2E Verification Walkthrough:**
+   * **Sign Up Page:**
+     * Attempt to sign up with invalid values (e.g., short name, bad email, or weak password). Observe real-time validation feedback.
+     * Fill in valid details (e.g., name `John Doe`, email `john@example.com`, password `StrongPass123!`). Click **Sign Up**.
+     * Upon success, you are redirected to the Login page.
+   * **Sign In Page:**
+     * Try signing in with wrong credentials to verify the failure handling.
+     * Sign in with your registered account.
+   * **Authenticated Dashboard Page:**
+     * Once signed in, you are redirected to the protected dashboard (`/dashboard`), which greets you with a secure welcome card and displays the parsed details of your JWT token.
+     * Press the **Sign Out** button. You will be redirected back to the Sign-In page, and access to `/dashboard` is blocked (secure client-side routing).
+
+---
+
+### 3. Manual Testing via Swagger UI (Visual API Interactive)
+
+The project includes a built-in Swagger interface for fast visual API verification.
+
+1. **Verify Backend is running:** Ensure the backend is active at `http://localhost:3000`.
 2. **Open Swagger UI:** Go to [http://localhost:3000/api/docs](http://localhost:3000/api/docs) in your browser.
-3. **Step-by-step Authentication Walkthrough:**
+3. **Walkthrough:**
    - Find the **`POST /api/v1/auth/sign-up`** endpoint, click **"Try it out"**, fill in a payload containing:
      - `name`: Must be at least 3 characters.
      - `email`: A valid email format.
@@ -192,8 +267,9 @@ The project includes a built-in Swagger interface for fast visual verification.
 
 ---
 
-### 3. Manual Testing via Terminal (cURL)
-You can test the endpoints directly from your command-line shell:
+### 4. Manual Testing via Terminal (cURL)
+
+You can test the backend endpoints directly from your command-line shell:
 
 #### A. Sign Up a User (Must pass validation)
 ```bash
