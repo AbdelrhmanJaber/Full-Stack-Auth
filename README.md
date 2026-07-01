@@ -53,25 +53,32 @@ Full interactive documentation available at **`/api/docs`** (development mode on
 
 ## How to Run
 
+### Understanding Environment Variables (`.env` Setup)
+This project uses `.env` files to configure MongoDB, JWT keys, and ports. Depending on how you choose to run the app, you need to copy the appropriate file:
+* **Docker Compose (Option 1):** You only need to copy the root `.env.example` to `.env` in the project root. Docker Compose automatically injects these into the containers.
+* **Local Backend Development (Option 2):** You only need to copy `Backend/.env.example` to `Backend/.env`. The backend process reads this directly from its own directory.
+* **Local Frontend Development (Option 3):** No `.env` is required by default. It defaults to connecting to the local backend at `http://localhost:3000/api/v1` but can be overridden with a `Frontend/.env` file containing `VITE_API_URL` if needed.
+
+---
+
 ### Option 1: Docker Compose (Recommended)
 
-Spins up the NestJS backend and MongoDB together in an isolated Docker network.
+Spins up the NestJS backend and MongoDB database together in an isolated Docker network.
 
 **Prerequisites:** [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/)
 
 ```bash
-# 1. Clone and enter the project root
-git clone <repo-url>
+# 1. Enter the project root
 cd Full-Stack-Auth
 
-# 2. Set up environment variables
+# 2. Set up the root environment file
 cp .env.example .env
-# Optionally edit passwords in .env
+# (Optional) Edit the passwords and secrets in .env
 
 # 3. Start everything
 docker compose up --build -d
 
-# Check logs
+# Check backend container startup logs
 docker compose logs -f backend
 ```
 
@@ -85,17 +92,17 @@ docker compose logs -f backend
 **Prerequisites:** Node.js ≥ 20 and a running MongoDB instance.
 
 ```bash
-# 1. Go to the backend directory
+# 1. Navigate to the backend directory
 cd Backend
 
-# 2. Set up environment
+# 2. Set up the backend environment file
 cp .env.example .env
-# Edit .env with your local MongoDB URI
+# Edit the MONGODB_URI inside .env to point to your local MongoDB server
 
 # 3. Install dependencies
 npm install
 
-# 4. Start in watch mode
+# 4. Start the server in watch mode
 npm run start:dev
 ```
 
@@ -106,13 +113,13 @@ npm run start:dev
 **Prerequisites:** Node.js ≥ 20. The frontend requires a running backend (Option 1 or Option 2).
 
 ```bash
-# 1. Go to the frontend directory
+# 1. Navigate to the frontend directory
 cd Frontend
 
 # 2. Install dependencies
 npm install
 
-# 3. Start development server with hot-reload
+# 3. Start the Vite development server
 npm run dev
 ```
 
